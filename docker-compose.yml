@@ -1,0 +1,67 @@
+version: "2.2"
+
+services:
+  postgres:
+    image: postgres:14.5
+    hostname: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "yes"
+      POSTGRES_DB: "rstudio"
+    volumes:
+      - var_lib_postgres:/var/lib/postgres
+    expose:
+      - "5432"
+
+  rstudio1:
+    image: ha-docker-cluster:${RSWB_VERSION:-2022.07.2-576.pro12}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        RSWB_VERSION: ${RSWB_VERSION:-2022.07.2-576.pro12}
+    command: ["rstudio"]
+    container_name: rstudio1
+    hostname: rstudio1
+    privileged: true
+    volumes:
+      - var_lib_rstudio_server:/var/lib/rstudio-server
+      - home:/home
+    expose:
+      - "8787"
+    ports:
+      - "8788:8787"
+    depends_on:
+      - "postgres"
+    environment:
+      RSP_LICENSE: ${RSP_LICENSE}
+
+
+  rstudio2:
+    image: ha-docker-cluster:${RSWB_VERSION:-2022.07.2-576.pro12}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        RSWB_VERSION: ${RSWB_VERSION:-2022.07.2-576.pro12}
+    command: ["rstudio"]
+    container_name: rstudio2
+    hostname: rstudio2
+    privileged: true
+    volumes:
+      - var_lib_rstudio_server:/var/lib/rstudio-server
+      - home:/home
+    expose:
+      - "8787"
+    ports:
+      - "8789:8787"
+    depends_on:
+      - "postgres"
+    environment:
+      RSP_LICENSE: ${RSP_LICENSE}
+
+volumes:
+  var_lib_postgres:
+  home:
+  var_lib_rstudio_server:
